@@ -1,18 +1,24 @@
 # StockPilot
 
-StockPilot — Plateforme intelligente de gestion de stock, parc informatique et inventaires.
+StockPilot — plateforme intelligente de gestion de stock, parc informatique et inventaires.
 
 ## Aperçu
 
-Ce dépôt contient une version fonctionnelle de démonstration du projet StockPilot, connectée à Supabase et prête à être utilisée en local ou déployée.
+Ce dépôt contient une version fonctionnelle de démonstration, prête à être utilisée en local et à être connectée à Supabase pour les données réelles.
 
 ## Stack
 
 - Frontend : React + Vite
 - Base de données : Supabase PostgreSQL
-- Déploiement : Vercel / Netlify / GitHub Pages (statique)
+- Déploiement : Vercel / Netlify / GitHub Pages
 
-## Démarrage rapide
+## Prérequis
+
+- Node.js 18+
+- npm
+- un projet Supabase actif
+
+## Démarrage
 
 1. Installer les dépendances :
 
@@ -20,7 +26,7 @@ Ce dépôt contient une version fonctionnelle de démonstration du projet StockP
 npm install
 ```
 
-2. Copier les variables d’environnement :
+2. Copier le fichier d’environnement :
 
 ```bash
 cp .env.example .env
@@ -32,7 +38,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Le projet s’ouvre par défaut sur :
+Le projet est accessible sur :
 
 ```text
 http://localhost:5173
@@ -45,29 +51,47 @@ VITE_SUPABASE_URL=https://qseslzjhrufikcxwzvmk.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_SIhilZKB1c5o5851ZV0rHQ_IovqvKvT
 ```
 
-## Supabase
+## Base de données Supabase
 
-Le projet utilise les tables suivantes :
+Le schéma complet est disponible dans :
 
-- `articles`
-- `stock_movements`
-- `inventories`
+- `supabase/full-schema.sql`
+- `supabase/secure-rls.sql`
 
-Des scripts SQL sont présents dans `supabase/schema.sql` et `supabase/seed.sql`.
+### Exécution rapide dans Supabase SQL Editor
+
+1. Ouvrir le projet Supabase
+2. Aller dans SQL Editor
+3. Copier le contenu de `supabase/full-schema.sql`
+4. Exécuter
+5. Pour production, activer ensuite les politiques de `supabase/secure-rls.sql`
+
+## Fonctionnalités du projet
+
+- tableau de bord de stock
+- articles et seuils
+- inventaires
+- alertes
+- rapports synthèse
+- connexion Supabase prête
+- données de démonstration si la base n’est pas encore connectée
 
 ## Déploiement
 
-Pour déployer en production :
+### Déploiement local
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+### Déploiement en ligne
 
 - pousser le repo sur GitHub
-- connecter le repo à Vercel
-- ajouter les variables d’environnement Vercel
-- publier le site
-
-## Remarques
-
-- En local, si Supabase n’est pas prêt ou n’a pas les tables, l’application utilise des données de démonstration.
-- Pour une vraie production, il est recommandé d’activer le RLS et de définir des politiques strictes.
+- connecter le repo sur Vercel
+- ajouter les variables d’environnement
+- déployer
 
 ## Structure
 
@@ -80,5 +104,12 @@ Pour déployer en production :
 ├── vite.config.js
 ├── .env.example
 ├── README.md
-└── .gitignore
+├── .gitignore
+└── LICENSE
 ```
+
+## Notes importantes
+
+- La clé `anon` Supabase est destinée au frontend.
+- La clé `service role` ne doit jamais être exposée dans le navigateur.
+- En production, il est recommandé de sécuriser les accès avec RLS et rôles.
