@@ -41,10 +41,16 @@ export default function App() {
     const loadArticles = async () => {
       setLoading(true);
       try {
-        if (supabase) {
+        const res = await fetch('/api/articles');
+        if (res.ok) {
+          const payload = await res.json();
+          if (Array.isArray(payload) && payload.length > 0) {
+            setArticles(payload);
+          }
+        } else if (supabase) {
           const { data, error } = await supabase.from('articles').select('*');
           if (!error && Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((item) => ({
+            setArticles(data.map((item) => ({
               id: item.id,
               reference: item.reference,
               designation: item.designation,
@@ -54,12 +60,11 @@ export default function App() {
               seuil: Number(item.seuil ?? 0),
               unit: item.unit || 'unité',
               tracking_type: item.tracking_type || 'consommable',
-            }));
-            setArticles(mapped);
+            })));
           }
         }
       } catch (e) {
-        console.warn('Supabase non connecté, données de démonstration utilisées.', e);
+        console.warn('Données de démonstration utilisées.', e);
       } finally {
         setLoading(false);
       }
@@ -108,33 +113,34 @@ export default function App() {
       return;
     }
 
-    if (supabase) {
-      const { error } = await supabase.from('articles').insert([item]);
-      if (error) {
-        setStatusMessage('Erreur Supabase : ' + error.message);
-        return;
+    try {
+      const res = await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) {
+        throw new Error(payload.error || 'Erreur API');
       }
-      setStatusMessage('Article enregistré dans Supabase.');
-    } else {
-      setStatusMessage('Article ajouté en mode démonstration.');
+
+      setArticles((prev) => [...prev, { id: Date.now(), ...item }]);
+      setStatusMessage('Article enregistré avec succès.');
+      setForm({
+        reference: '',
+        designation: '',
+        category: 'Consommables informatiques',
+        location: 'Magasin informatique',
+        stock: 0,
+        seuil: 1,
+        unit: 'unité',
+        tracking_type: 'consommable',
+      });
+      setShowNewForm(false);
+    } catch (error) {
+      setStatusMessage('Erreur API : ' + error.message);
     }
-
-    setArticles((prev) => [
-      ...prev,
-      { id: Date.now(), ...item },
-    ]);
-
-    setForm({
-      reference: '',
-      designation: '',
-      category: 'Consommables informatiques',
-      location: 'Magasin informatique',
-      stock: 0,
-      seuil: 1,
-      unit: 'unité',
-      tracking_type: 'consommable',
-    });
-    setShowNewForm(false);
   };
 
   const updateStock = async (articleId, delta) => {
@@ -142,20 +148,25 @@ export default function App() {
     if (!article) return;
 
     const nextStock = Math.max(0, article.stock + delta);
-    const payload = { stock: nextStock };
 
-    if (supabase) {
-      const { error } = await supabase.from('articles').update(payload).eq('reference', article.reference);
-      if (error) {
-        setStatusMessage('Mouvement non enregistré dans Supabase : ' + error.message);
-        return;
+    try {
+      const res = await fetch('/api/articles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference: article.reference, stock: nextStock }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Mouvement non enregistré');
       }
-    }
 
-    setArticles((prev) =>
-      prev.map((item) => (item.id === articleId ? { ...item, stock: nextStock } : item))
-    );
-    setStatusMessage(`Mouvement appliqué : ${article.designation} (${delta > 0 ? '+' : ''}${delta}).`);
+      setArticles((prev) =>
+        prev.map((item) => (item.id === articleId ? { ...item, stock: nextStock } : item))
+      );
+      setStatusMessage(`Mouvement appliqué : ${article.designation} (${delta > 0 ? '+' : ''}${delta}).`);
+    } catch (error) {
+      setStatusMessage('Impossible de mettre à jour le stock : ' + error.message);
+    }
   };
 
   return (

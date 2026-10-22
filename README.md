@@ -9,16 +9,18 @@ Ce dépôt contient une version fonctionnelle de démonstration, prête à être
 ## Stack
 
 - Frontend : React + Vite
+- API serveur : Vercel Serverless Functions
 - Base de données : Supabase PostgreSQL
-- Déploiement : Vercel / Netlify / GitHub Pages
+- Déploiement : Vercel
 
 ## Prérequis
 
 - Node.js 18+
 - npm
-- un projet Supabase actif
+- compte Supabase
+- compte Vercel
 
-## Démarrage
+## Installation locale
 
 1. Installer les dépendances :
 
@@ -26,13 +28,22 @@ Ce dépôt contient une version fonctionnelle de démonstration, prête à être
 npm install
 ```
 
-2. Copier le fichier d’environnement :
+2. Copier le fichier environnement :
 
 ```bash
 cp .env.example .env
 ```
 
-3. Lancer le projet :
+3. Définir vos variables :
+
+```env
+VITE_SUPABASE_URL=https://qseslzjhrufikcxwzvmk.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_SIhilZKB1c5o5851ZV0rHQ_IovqvKvT
+SUPABASE_URL=https://qseslzjhrufikcxwzvmk.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+```
+
+4. Lancer le projet :
 
 ```bash
 npm run dev
@@ -44,16 +55,27 @@ Le projet est accessible sur :
 http://localhost:5173
 ```
 
-## Variables d’environnement
+## API Vercel
 
-```env
-VITE_SUPABASE_URL=https://qseslzjhrufikcxwzvmk.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_SIhilZKB1c5o5851ZV0rHQ_IovqvKvT
+Le dépôt inclut des fonctions serverless Vercel dans `api/` :
+
+- `api/health.js` : vérification de santé de l’application
+- `api/articles.js` : lecture et écriture des articles via Supabase et une clé service role côté serveur
+
+### Exemple de route
+
+```text
+GET /api/health
+GET /api/articles
+POST /api/articles
+PATCH /api/articles
 ```
+
+Ces routes sont prêtes pour un déploiement sur Vercel.
 
 ## Base de données Supabase
 
-Le schéma complet est disponible dans :
+Les scripts SQL sont disponibles dans :
 
 - `supabase/full-schema.sql`
 - `supabase/secure-rls.sql`
@@ -75,41 +97,44 @@ Le schéma complet est disponible dans :
 - rapports synthèse
 - connexion Supabase prête
 - données de démonstration si la base n’est pas encore connectée
+- API Vercel prête à déployer
 
-## Déploiement
+## Déploiement Vercel
 
-### Déploiement local
+1. Pousser le dépôt sur GitHub
+2. Créer un projet Vercel
+3. Importer le dépôt
+4. Ajouter les variables d’environnement suivantes :
 
-```bash
-npm install
-cp .env.example .env
-npm run dev
+```env
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-### Déploiement en ligne
+5. Déployer
 
-- pousser le repo sur GitHub
-- connecter le repo sur Vercel
-- ajouter les variables d’environnement
-- déployer
+## Sécurité
+
+- La clé `anon` est utilisée côté frontend.
+- La clé `service role` est réservée au serveur et ne doit jamais être exposée dans le navigateur.
+- Le projet utilise des routes serverless pour limiter les points d’exposition.
+- En production, il est recommandé de sécuriser l’accès avec RLS et des rôles stricts.
 
 ## Structure
 
 ```text
 .
+├── api/
 ├── src/
 ├── supabase/
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── vercel.json
 ├── .env.example
 ├── README.md
 ├── .gitignore
 └── LICENSE
 ```
-
-## Notes importantes
-
-- La clé `anon` Supabase est destinée au frontend.
-- La clé `service role` ne doit jamais être exposée dans le navigateur.
-- En production, il est recommandé de sécuriser les accès avec RLS et rôles.
